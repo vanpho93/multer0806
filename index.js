@@ -10,6 +10,10 @@ function fileFilter(req, file, cb) {
     cb(new Error('Loi dinh dang file!'));
 }
 
+const limits = {
+    fileSize: 100 * 1024
+};
+
 const storage = multer.diskStorage({
     destination(req, file, cb) {
         cb(null, './public');
@@ -19,7 +23,7 @@ const storage = multer.diskStorage({
     }
 });
 
-const upload = multer({ storage, fileFilter });
+const upload = multer({ storage, fileFilter, limits }).single('avatar');
 
 const app = express();
 app.set('view engine', 'ejs');
@@ -29,9 +33,16 @@ app.use(express.static('public'));
 
 app.get('/', (req, res) => res.render('home'));
 
-app.post('/upload', upload.single('avatar'), (req, res) => {
-    console.log(req.file);
-    res.send('upload thanh cong');
+app.post('/upload', (req, res) => {
+    upload(req, res, err => {
+        if (err) return res.send('Co loi');
+        console.log(req.file);
+        res.send('upload thanh cong');
+    });
 });
+
+// app.use((err, req, res, next) => {
+//     res.send('CO LOI');
+// });
 
 app.listen(3000, () => console.log('Server started!'));
